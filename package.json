@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
@@ -15,6 +16,14 @@
     "discord.js-selfbot-v13": "^2.14.0",
     "dotenv": "^16.0.3",
     "eris": "^0.17.2",
+    "express": "^4.18.2",
+    "mongoose": "^7.1.1",
+    "node-cron": "^3.0.2"
+  },
+  "devDependencies": {
+    "eslint": "8.10.0",
+    "eslint-config-airbnb": "19.0.4",
+    "eslint-plugin-import": "2.25.4",
     "nodemon": "^2.0.22"
   }
 }
