@@ -26,8 +26,7 @@ export default class Database {
 			__v: false,
 			_id: false,
 		});
-		const serversMap = arrayToMap(servers, 'serverId');
 
-		return serversMap;
+		return servers;
 	}
 }

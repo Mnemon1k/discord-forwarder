@@ -1,24 +1,54 @@
-import { Client, SnowflakeUtil } from 'discord.js-selfbot-v13';
-import arrayToMap from './helpers/arrayToMap.js';
+import {Client, SnowflakeUtil} from 'discord.js-selfbot-v13';
 import delay from './helpers/delay.js';
-import Server from './models/serverModel.js';
 
 export default class Discord {
 	constructor(db) {
 		this.db = db;
-		this.client = new Client({
-			checkUpdate: false,
-		});
+		this.client = new Client({checkUpdate: false});
 
 		this.client.on('ready', async () => {
 			console.log(`${this.client.user.username} - connected`);
 
 			await this.db.connect();
-
-			// await this.updateGuildsInDb();
+			await this.init();
 		});
 
 		this.client.login(process.env.DS_TOKEN);
+	}
+
+	async init() {
+		await this.sendNewMessagesToTg();
+
+		// set cron for sendNewMessagesToTg
+	}
+
+	async sendNewMessagesToTg() {
+		await this.client.guilds.fetch();
+		const serversArr = await this.db.getServers();
+
+		for (const server of serversArr) {
+			const guild = this.client.guilds.cache.get(server.serverId);
+			const channel = await guild.channels.fetch(server.channelId);
+
+			const currentDateObj = server.lastPostTimestamp;
+			const numberOfMlSeconds = currentDateObj.getTime();
+			const addMlSeconds = 60 * 60 * 1000;
+			const newDateObj = new Date(numberOfMlSeconds - (addMlSeconds * 45));
+
+			const messages = await channel.messages.fetch({
+				after: SnowflakeUtil.generate(newDateObj.getTime())
+			});
+
+			console.log(newDateObj);
+			console.log(messages);
+
+			// Create array from messages map
+			// Sort array by createdTimestamp
+			// Update lastPostTimestamp in db
+			// Send tops to TG
+
+			await delay(1000);
+		}
 	}
 
 	async updateGuildsInDb() {
