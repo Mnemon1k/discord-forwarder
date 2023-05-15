@@ -11,6 +11,8 @@ module.exports = {
 	plugins: [],
 	rules: {
 		'no-console': 0,
+		'class-methods-use-this': 0,
+		'no-unused-vars': 0,
 		'no-await-in-loop': 0,
 		'no-unreachable-loop': 0,
 		'no-new': 0,

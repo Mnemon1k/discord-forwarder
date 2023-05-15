@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import Server from './models/serverModel.js';
-import arrayToMap from './helpers/arrayToMap.js';
 
 export default class Database {
 	constructor(uri) {
@@ -19,6 +18,10 @@ export default class Database {
 		this.connection.once('open', () => {
 			console.log('we are connected');
 		});
+	}
+
+	async updateTimestampInDb() {
+		await Server.updateMany({}, { lastPostTimestamp: new Date() });
 	}
 
 	async getServers() {

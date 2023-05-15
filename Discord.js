@@ -1,10 +1,11 @@
-import {Client, SnowflakeUtil} from 'discord.js-selfbot-v13';
+import { Client, SnowflakeUtil } from 'discord.js-selfbot-v13';
 import delay from './helpers/delay.js';
 
 export default class Discord {
-	constructor(db) {
+	constructor(db, sender) {
 		this.db = db;
-		this.client = new Client({checkUpdate: false});
+		this.sender = sender;
+		this.client = new Client({ checkUpdate: false });
 
 		this.client.on('ready', async () => {
 			console.log(`${this.client.user.username} - connected`);
@@ -22,9 +23,10 @@ export default class Discord {
 		// set cron for sendNewMessagesToTg
 	}
 
-	async sendNewMessagesToTg() {
+	async getNewMessages() {
 		await this.client.guilds.fetch();
 		const serversArr = await this.db.getServers();
+		const allNewMessages = {};
 
 		for (const server of serversArr) {
 			const guild = this.client.guilds.cache.get(server.serverId);
@@ -35,23 +37,27 @@ export default class Discord {
 			const addMlSeconds = 60 * 60 * 1000;
 			const newDateObj = new Date(numberOfMlSeconds - (addMlSeconds * 45));
 
-			const messages = await channel.messages.fetch({
-				after: SnowflakeUtil.generate(newDateObj.getTime())
+			const newMessages = await channel.messages.fetch({
+				after: SnowflakeUtil.generate(newDateObj.getTime()),
 			});
 
-			console.log(newDateObj);
-			console.log(messages);
-
-			// Create array from messages map
-			// Sort array by createdTimestamp
-			// Update lastPostTimestamp in db
-			// Send tops to TG
+			// console.log(newDateObj);
+			// console.log(newMessages);
+			allNewMessages[server.channelId] = newMessages;
 
 			await delay(1000);
 		}
+
+		return { messages: allNewMessages, servers: serversArr };
 	}
 
-	async updateGuildsInDb() {
+	async sendNewMessagesToTg() {
+		const { messages, servers } = await this.getNewMessages();
+		await this.db.updateTimestampInDb();
+		await this.sender.sendNewMessages(messages, servers);
+	}
+
+	async logNewServersNewsChannels() {
 		const guilds = await this.client.guilds.fetch();
 		const serversMap = await this.db.getServers();
 
@@ -74,29 +80,6 @@ export default class Discord {
 
 			delay(2000);
 		}
-	}
-
-	async qwe() {
-		const guilds = await this.client.guilds.fetch();
-
-		for (let [, guild] of guilds) {
-			// console.log(guild);
-			console.log(`${guild.name} - ${guild.id}`);
-			guild = await guild.fetch();
-			const channel = await guild.channels.fetch('436636285008871434');
-			const messages = await channel.messages.fetch({
-				after: SnowflakeUtil.generate(new Date(1680087104000)),
-			});
-
-			// eslint-disable-next-line no-restricted-syntax
-			for (const [, message] of messages) {
-				console.log(new Date(message.createdTimestamp));
-			}
-
-			break;
-		}
-
-		return guilds;
 	}
 }
 

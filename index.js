@@ -1,6 +1,7 @@
 import runServer from './server.js';
-import Discord from './discord.js';
-import Database from './db.js';
+import Discord from './Discord.js';
+import Database from './Database.js';
+import TelegramBot from './TelegramBot.js';
 
 const isProduction = process.env.NODE_ENV !== 'dev';
 
@@ -9,8 +10,5 @@ if (isProduction) {
 }
 
 const db = new Database(process.env.DB_URI);
-new Discord(db);
-
-/*
-db.getServers();
-*/
+const sender = new TelegramBot(process.env.BOT_TOKEN, process.env.TG_CHANNEL_ID);
+new Discord(db, sender);
