@@ -16,7 +16,7 @@ export default class Database {
 		this.connection = mongoose.connection;
 
 		this.connection.once('open', () => {
-			console.log('we are connected');
+			console.log('Connected to Db');
 		});
 	}
 
