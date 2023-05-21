@@ -1,4 +1,5 @@
-import {Client, SnowflakeUtil} from 'discord.js-selfbot-v13';
+import { Client, SnowflakeUtil } from 'discord.js-selfbot-v13';
+import cron from 'node-cron';
 import delay from './helpers/delay.js';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -20,10 +21,11 @@ export default class Discord {
 	}
 
 	async init() {
-		await this.sendNewMessagesToTg();
-
 		if (isProduction) {
-			// set cron for sendNewMessagesToTg if production
+			console.log('Cron setted');
+			cron.schedule('*/10 * * * *', this.sendNewMessagesToTg);
+		} else {
+			await this.sendNewMessagesToTg();
 		}
 	}
 
@@ -37,12 +39,12 @@ export default class Discord {
 			const channel = await guild.channels.fetch(server.channelId);
 
 			const currentDateObj = server.lastPostTimestamp;
-			const numberOfMlSeconds = currentDateObj.getTime();
-			const addMlSeconds = 60 * 60 * 1000;
-			const newDateObj = new Date(numberOfMlSeconds - (addMlSeconds * 66));
+			// const numberOfMlSeconds = currentDateObj.getTime();
+			// const addMlSeconds = 60 * 60 * 1000;
+			// const newDateObj = new Date(numberOfMlSeconds - (addMlSeconds * 66));
 
 			allNewMessages[server.channelId] = await channel.messages.fetch({
-				after: SnowflakeUtil.generate(newDateObj.getTime()),
+				after: SnowflakeUtil.generate(currentDateObj.getTime()),
 			});
 
 			await delay(1000);

@@ -1,8 +1,8 @@
+import dotenv from 'dotenv';
 import runServer from './server.js';
 import Discord from './Discord.js';
 import Database from './Database.js';
 import TelegramBot from './TelegramBot.js';
-import dotenv from 'dotenv';
 
 dotenv.config();
 
