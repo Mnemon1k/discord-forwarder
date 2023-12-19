@@ -1,29 +1,47 @@
 import { Telegram } from 'telegraf';
-import arrayToMap from './helpers/arrayToMap.js';
+import delay from './helpers/delay.js';
 
 export default class TelegramBot {
 	constructor(botToken, channel) {
 		this.channel = channel;
 		this.tg = new Telegram(botToken);
 		this.msgOptions = {
-			parse_mode: 'Markdown',
+			parse_mode: 'html',
 		};
 	}
 
 	async sendNewMessages(messagesByChannelId, servers) {
-		const serversMap = arrayToMap(servers, 'channelId');
-
-		console.log(messagesByChannelId);
-
-		servers.forEach(({ channelId, serverId, serverName }) => {
+		for (const { channelId, serverId, serverName, tgChannelId } of servers) {
 			const messages = messagesByChannelId[channelId];
-			if (messages.size === 0) return;
+			const channel = tgChannelId || this.channel;
 
-			for (const [, { content }] of messages) {
-				const text = `[${serverName}](https://discord.com/channels/${serverId}/${channelId}) \n\n ${content}`;
+			if (messages.size === 0) continue;
 
-				this.tg.sendMessage(this.channel, text, this.msgOptions);
+			if (channel.split('/').length === 2) {
+				// eslint-disable-next-line prefer-destructuring
+				this.msgOptions.reply_to_message_id = channel.split('/')[1];
 			}
-		});
+
+			for (const [, { content, author, attachments }] of messages) {
+				let text = `#${serverName} (${author.username}) \n\n ${content}`;
+				text = text.replace(/<@&(\d+)>/g, '#user');
+				text = text.replace(/<:(\d+):\d+>/g, '');
+				text = text.replace(/<:([^:>]+):(\d+)>/g, '');
+
+				await this.tg.sendMessage(channel.split('/')[0], text, this.msgOptions);
+				await delay(2000);
+
+				if (attachments.size && attachments?.size) {
+					for (const photo of attachments.values()) {
+						console.log(photo);
+						if (photo.contentType.includes('image')) {
+							await this.tg.sendPhoto(channel.split('/')[0], photo.url, this.msgOptions);
+							await delay(2000);
+						}
+					}
+				}
+			}
+		}
 	}
 }
+

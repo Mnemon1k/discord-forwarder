@@ -23,9 +23,10 @@ export default class Discord {
 	async init() {
 		if (isProduction) {
 			console.log('Cron setted');
-			cron.schedule('*/10 * * * *', this.sendNewMessagesToTg);
+			cron.schedule('*/3 * * * *', this.sendNewMessagesToTg);
 		} else {
-			await this.sendNewMessagesToTg();
+			setInterval(this.sendNewMessagesToTg.bind(this), 110000);
+			// await this.sendNewMessagesToTg();
 		}
 	}
 
@@ -39,9 +40,6 @@ export default class Discord {
 			const channel = await guild.channels.fetch(server.channelId);
 
 			const currentDateObj = server.lastPostTimestamp;
-			// const numberOfMlSeconds = currentDateObj.getTime();
-			// const addMlSeconds = 60 * 60 * 1000;
-			// const newDateObj = new Date(numberOfMlSeconds - (addMlSeconds * 66));
 
 			allNewMessages[server.channelId] = await channel.messages.fetch({
 				after: SnowflakeUtil.generate(currentDateObj.getTime()),
@@ -50,10 +48,13 @@ export default class Discord {
 			await delay(1000);
 		}
 
+		console.log(allNewMessages);
+
 		return { messages: allNewMessages, servers: serversArr };
 	}
 
 	async sendNewMessagesToTg() {
+		console.log('sendNewMessagesToTg()');
 		const { messages, servers } = await this.getNewMessages();
 		await this.db.updateTimestampInDb();
 		await this.sender.sendNewMessages(messages, servers);
@@ -84,4 +85,3 @@ export default class Discord {
 		}
 	}
 }
-
