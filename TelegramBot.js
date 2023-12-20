@@ -25,17 +25,28 @@ export default class TelegramBot {
 			for (const [, { content, author, attachments }] of messages) {
 				let text = `#${serverName} (${author.username}) \n\n ${content}`;
 				text = text.replace(/<@&(\d+)>/g, '#user');
+				text = text.replace(/<@(\d+)>/g, '#user');
 				text = text.replace(/<:(\d+):\d+>/g, '');
 				text = text.replace(/<:([^:>]+):(\d+)>/g, '');
+				text = text.replace(/<([^:>]+):([^:>]+):(\d+)>/g, '');
 
-				await this.tg.sendMessage(channel.split('/')[0], text, this.msgOptions);
+				try {
+					await this.tg.sendMessage(channel.split('/')[0], text, this.msgOptions);
+				} catch (e) {
+					console.log(e);
+				}
 				await delay(2000);
 
 				if (attachments.size && attachments?.size) {
 					for (const photo of attachments.values()) {
 						console.log(photo);
 						if (photo.contentType.includes('image')) {
-							await this.tg.sendPhoto(channel.split('/')[0], photo.url, this.msgOptions);
+							try {
+								await this.tg.sendPhoto(channel.split('/')[0], photo.url, this.msgOptions);
+							} catch (e) {
+								console.log(e);
+							}
+
 							await delay(2000);
 						}
 					}
