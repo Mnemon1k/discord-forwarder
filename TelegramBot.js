@@ -23,7 +23,7 @@ export default class TelegramBot {
 			}
 
 			for (const [, { content, author, attachments }] of messages) {
-				let text = `#${serverName} (${author.username}) \n\n ${content}`;
+				let text = `#${author.username} \n\n ${content}`;
 				text = text.replace(/<@&(\d+)>/g, '#user');
 				text = text.replace(/<@(\d+)>/g, '#user');
 				text = text.replace(/<:(\d+):\d+>/g, '');
